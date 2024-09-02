@@ -1,10 +1,11 @@
-// import { Router } from 'express'
-// // import { handleLogin } from '../controllers/authController'
-// import authMiddleware from '../middlewares/authMiddleware'
+// src/routes/authRoutes.ts
+import { Router } from 'express'
+import * as authController from '../controllers/authController'
 
-// const router = Router()
+const router = Router()
 
-// // Define the login route
-// router.get('/login', authMiddleware, handleLogin)
+router.post('/signup', authController.signup)
+router.post('/login', authController.login)
+router.post('/logout', authController.logout)
 
-// export default router
+export default router

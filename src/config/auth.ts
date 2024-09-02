@@ -10,3 +10,5 @@ export const authConfig = {
   clientSecret: process.env.AUTH0_CLIENT_SECRET ?? '',
   audience: process.env.AUTH0_AUDIENCE ?? '',
 }
+
+export default authConfig

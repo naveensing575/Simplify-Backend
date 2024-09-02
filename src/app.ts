@@ -1,27 +1,25 @@
-import express, { Request, Response, NextFunction } from 'express'
+import express from 'express'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import authConfig from './config/auth'
 import userRoutes from './routes/userRoutes'
 import taskRoutes from './routes/taskRoutes'
-import dbConfig from './config/db'
-import { PrismaClient } from '@prisma/client'
+import authRoutes from './routes/authRoutes'
 
+// Initialize Express app
 const app = express()
+
+// Middleware to add security headers
+app.use(helmet())
+
+// Middleware for logging HTTP requests
+app.use(morgan('combined')) // You can use 'tiny' for a less verbose log format
 
 // Middleware to parse JSON bodies
 app.use(express.json())
 
-// Initialize the Prisma client
-let prisma: PrismaClient
-
-// Middleware to attach Prisma client to the request object
-app.use(async (req: Request, res: Response, next: NextFunction) => {
-  if (!prisma) {
-    prisma = await dbConfig()
-  }
-  ;(req as any).prisma = prisma // Type assertion here
-  next()
-})
-
 // Route handlers
+app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/tasks', taskRoutes)
 
@@ -30,4 +28,5 @@ app.get('/', (req, res) => {
   res.status(200).send('Simplify API is running')
 })
 
+// Export the app
 export default app
