@@ -1,7 +1,6 @@
 import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
-import authConfig from './config/auth'
 import userRoutes from './routes/userRoutes'
 import taskRoutes from './routes/taskRoutes'
 import authRoutes from './routes/authRoutes'

@@ -1,34 +1,16 @@
-import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
-import { IGetUserAuthInfoRequest } from '../types/index'
+import { expressjwt, GetVerificationKey } from 'express-jwt'
+import jwksRsa from 'jwks-rsa'
+import { authConfig } from '../config/auth'
 
-export const authMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const authHeader = req.headers.authorization
-
-  if (!authHeader) {
-    return res.status(401).json({ message: 'No token provided' })
-  }
-
-  const token = authHeader.split(' ')[1]
-
-  try {
-    const decodedToken = jwt.verify(
-      token,
-      process.env.AUTH0_CLIENT_SECRET as string,
-    )
-
-    // Type assertion to cast req as IGetUserAuthInfoRequest
-    ;(req as IGetUserAuthInfoRequest).user = {
-      sub: (decodedToken as any).sub,
-      // Add other properties if needed
-    }
-
-    next()
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' })
-  }
-}
+// Middleware to validate JWT tokens from Auth0
+export const authMiddleware = expressjwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`,
+  }) as GetVerificationKey,
+  audience: authConfig.audience,
+  issuer: `https://${authConfig.domain}/`,
+  algorithms: ['RS256'],
+})
