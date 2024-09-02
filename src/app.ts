@@ -1,6 +1,7 @@
 import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import cors from 'cors'
 import userRoutes from './routes/userRoutes'
 import taskRoutes from './routes/taskRoutes'
 import authRoutes from './routes/authRoutes'
@@ -16,6 +17,15 @@ app.use(morgan('combined')) // You can use 'tiny' for a less verbose log format
 
 // Middleware to parse JSON bodies
 app.use(express.json())
+
+// Middleware to enable CORS
+app.use(
+  cors({
+    origin: 'http://localhost:5173', // Replace with your frontend URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // Include cookies if needed
+  }),
+)
 
 // Route handlers
 app.use('/api/auth', authRoutes)
