@@ -61,8 +61,3 @@ export const login = async (email: string, password: string) => {
 
   return { token, user }
 }
-
-export const logout = () => {
-  // Implement logic if needed, like token blacklisting
-  return { message: 'Logged out successfully' }
-}
