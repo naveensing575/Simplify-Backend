@@ -23,7 +23,7 @@ export class UserController {
   }
 
   async updateUserProfile(req: Request, res: Response) {
-    const typedReq = req as IGetUserAuthInfoRequest // Type assertion here
+    const typedReq = req as IGetUserAuthInfoRequest
 
     try {
       const auth0Id = typedReq.user.sub

@@ -9,6 +9,10 @@ export const authConfig = {
   clientId: process.env.AUTH0_CLIENT_ID ?? '',
   clientSecret: process.env.AUTH0_CLIENT_SECRET ?? '',
   audience: process.env.AUTH0_AUDIENCE ?? '',
+  jwtToken: process.env.JWT_SECRET ?? '',
+  get issuer() {
+    return `https://${authConfig.domain}/`
+  },
 }
 
 export default authConfig

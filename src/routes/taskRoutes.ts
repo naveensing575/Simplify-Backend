@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { TaskController } from '../controllers/taskController'
-import { authMiddleware } from '../middlewares/authMiddleware'
+import authMiddleware from '../middlewares/authMiddleware'
 import { IGetUserAuthInfoRequest } from '../types/index'
 
 const taskController = new TaskController()

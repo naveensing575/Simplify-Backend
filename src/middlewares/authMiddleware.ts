@@ -1,16 +1,44 @@
-import { expressjwt, GetVerificationKey } from 'express-jwt'
-import jwksRsa from 'jwks-rsa'
-import { authConfig } from '../config/auth'
+import { Request, Response, NextFunction } from 'express'
+import jwt from 'jsonwebtoken'
+import authConfig from '../config/auth' // Your auth configuration
 
-// Middleware to validate JWT tokens from Auth0
-export const authMiddleware = expressjwt({
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`,
-  }) as GetVerificationKey,
-  audience: authConfig.audience,
-  issuer: `https://${authConfig.domain}/`,
-  algorithms: ['RS256'],
-})
+export interface IGetUserAuthInfoRequest extends Request {
+  user?: { userId: number } // Attach the userId to the request object
+}
+
+// Middleware to verify JWT and attach the userId to req.user
+const authMiddleware = (
+  req: IGetUserAuthInfoRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  const authHeader = req.headers['authorization']
+
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Authorization header is missing' })
+  }
+
+  const token = authHeader.split(' ')[1] // Extract the token from Bearer
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token is missing' })
+  }
+
+  try {
+    const secretKey = authConfig.jwtToken
+    const decoded = jwt.verify(token, secretKey) as jwt.JwtPayload
+
+    // Attach userId from the decoded token payload to the request object
+    if (decoded && typeof decoded === 'object' && decoded.userId) {
+      req.user = { userId: decoded.userId } // Use userId from the token payload
+    } else {
+      return res.status(403).json({ message: 'Invalid token payload' })
+    }
+
+    next() // Proceed to the next middleware or route handler
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid or expired token' })
+  }
+}
+
+export default authMiddleware
