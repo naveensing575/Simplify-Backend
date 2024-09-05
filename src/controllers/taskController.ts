@@ -31,7 +31,22 @@ export class TaskController {
         return res.status(400).json({ message: 'User ID is missing' })
       }
 
-      const newTask = await taskService.createTask(userId, req.body)
+      const { title, description, status, priority, dueDate } = req.body
+
+      // Validate request payload
+      if (!title || !status || !priority) {
+        return res.status(400).json({ message: 'Required fields are missing' })
+      }
+
+      // Create the task
+      const newTask = await taskService.createTask(userId, {
+        title,
+        description,
+        status,
+        priority,
+        dueDate: dueDate ? new Date(dueDate) : undefined, // Convert dueDate to Date object
+      })
+
       res.status(201).json(newTask)
     } catch (error: any) {
       console.error('Error creating task:', error.message)

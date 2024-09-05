@@ -22,8 +22,8 @@ export class TaskService {
     data: {
       title: string
       description?: string
-      status?: string
-      priority?: string
+      status: string
+      priority: string
       dueDate?: Date
     },
   ) {

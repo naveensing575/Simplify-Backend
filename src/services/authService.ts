@@ -1,4 +1,3 @@
-// src/services/authService.ts
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
@@ -39,7 +38,15 @@ export const signup = async (email: string, password: string, name: string) => {
       expiresIn: '1h',
     })
 
-    return { token, user }
+    // Return token and required user information (id, name, email)
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    }
   } catch (error: any) {
     console.error('Error during signup:', error.message)
     throw new Error('Error during signup')
@@ -69,7 +76,15 @@ export const login = async (email: string, password: string) => {
       expiresIn: '1h',
     })
 
-    return { token, user }
+    // Return token and required user information (id, name, email)
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    }
   } catch (error: any) {
     console.error('Error during login:', error.message)
     throw new Error('Error during login')
