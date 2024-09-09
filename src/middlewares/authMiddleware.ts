@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import authConfig from '../config/auth' // Your auth configuration
+import authConfig from '../config/auth'
 
 export interface IGetUserAuthInfoRequest extends Request {
-  user?: { userId: number } // Attach the userId to the request object
+  user?: { userId: number }
 }
 
 // Middleware to verify JWT and attach the userId to req.user

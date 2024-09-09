@@ -3,13 +3,21 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export class TaskService {
-  async getAllTasks(userId: number) {
+  [x: string]: any
+  // Fetch all tasks for a given user (UUID), including the assignee's name
+  async getAllTasks(userId: string) {
     try {
-      console.log('Service: Fetching tasks for userId:', userId)
       const tasks = await prisma.task.findMany({
         where: { userId },
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true, // Include the assignee's name and id in the response
+            },
+          },
+        },
       })
-      console.log('Service: Tasks fetched for userId:', userId)
       return tasks
     } catch (error: any) {
       console.error('Service: Error retrieving tasks:', error.message)
@@ -17,30 +25,36 @@ export class TaskService {
     }
   }
 
+  // Create a new task for a given user (UUID), assigning directly to a user if an assignee is provided
   async createTask(
-    userId: number,
+    userId: string,
     data: {
       title: string
       description?: string
       status: string
       priority: string
       dueDate?: Date
+      assigneeId?: string // This should reference the `User` table's `id`
     },
   ) {
     try {
-      console.log(
-        'Service: Creating task for userId:',
-        userId,
-        'with data:',
-        data,
-      )
+      const taskData: any = {
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        dueDate: data.dueDate,
+        userId, // Assign the task to the creator
+      }
+
+      // If assigneeId is provided, connect the task to the user
+      if (data.assigneeId) {
+        taskData.assignee = { connect: { id: data.assigneeId } }
+      }
+
       const task = await prisma.task.create({
-        data: {
-          ...data,
-          userId,
-        },
+        data: taskData,
       })
-      console.log('Service: Task created for userId:', userId)
       return task
     } catch (error: any) {
       console.error('Service: Error creating task:', error.message)
@@ -48,41 +62,53 @@ export class TaskService {
     }
   }
 
+  // Update an existing task for a given user (UUID)
   async updateTask(
-    taskId: number,
-    userId: number,
+    taskId: string, // UUID for task
+    userId: string, // UUID for ownership check
     data: {
       title?: string
       description?: string
       status?: string
       priority?: string
       dueDate?: Date
+      assigneeId?: string // Reference the assignee's user ID directly
     },
   ) {
     try {
-      console.log('Service: Updating taskId:', taskId, 'for userId:', userId)
-      const task = await prisma.task.update({
-        where: { id: taskId, userId },
-        data,
+      const task = await prisma.task.findFirst({
+        where: {
+          id: taskId,
+          userId, // Ensure the task belongs to this user
+        },
       })
-      console.log('Service: Task updated for userId:', userId)
-      return task
+
+      if (!task) {
+        throw new Error('Task not found or you do not have access to this task')
+      }
+
+      const updateData: any = {
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        dueDate: data.dueDate,
+      }
+
+      // If assigneeId is provided, connect the task to the new assignee
+      if (data.assigneeId) {
+        updateData.assignee = { connect: { id: data.assigneeId } }
+      }
+
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: updateData,
+      })
+
+      return updatedTask
     } catch (error: any) {
       console.error('Service: Error updating task:', error.message)
       throw new Error('Error updating task')
-    }
-  }
-
-  async deleteTask(taskId: number, userId: number) {
-    try {
-      console.log('Service: Deleting taskId:', taskId, 'for userId:', userId)
-      await prisma.task.delete({
-        where: { id: taskId, userId },
-      })
-      console.log('Service: Task deleted for userId:', userId)
-    } catch (error: any) {
-      console.error('Service: Error deleting task:', error.message)
-      throw new Error('Error deleting task')
     }
   }
 }

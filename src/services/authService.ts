@@ -42,7 +42,6 @@ export const signup = async (email: string, password: string, name: string) => {
     return {
       token,
       user: {
-        id: user.id,
         name: user.name,
         email: user.email,
       },
@@ -80,7 +79,6 @@ export const login = async (email: string, password: string) => {
     return {
       token,
       user: {
-        id: user.id,
         name: user.name,
         email: user.email,
       },

@@ -3,27 +3,43 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export class UserService {
-  async getUserProfile(auth0Id: string) {
+  // Fetch user profile by userId from token (UUID as string)
+  async getUserProfile(userId: string) {
     try {
       const user = await prisma.user.findUnique({
-        where: { auth0Id },
+        where: { id: userId }, // UUID is a string
       })
-      return user
+
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      }
     } catch (error) {
       throw new Error('Error retrieving user profile')
     }
   }
 
+  // Update user profile by userId from token (UUID as string)
   async updateUserProfile(
-    auth0Id: string,
+    userId: string, // UUID as string
     data: { email?: string; name?: string },
   ) {
     try {
-      const user = await prisma.user.update({
-        where: { auth0Id },
+      const updatedUser = await prisma.user.update({
+        where: { id: userId }, // UUID is a string
         data,
       })
-      return user
+
+      return {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+      }
     } catch (error) {
       throw new Error('Error updating user profile')
     }

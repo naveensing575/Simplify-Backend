@@ -5,10 +5,10 @@ import { IGetUserAuthInfoRequest } from '../types/index'
 const taskService = new TaskService()
 
 export class TaskController {
+  // Get all tasks for the authenticated user
   async getAllTasks(req: IGetUserAuthInfoRequest, res: Response) {
     try {
-      const userId = req.user?.userId
-      console.log('Fetching tasks for userId:', userId)
+      const userId = req.user?.userId // Get userId from middleware (UUID)
 
       if (!userId) {
         return res.status(400).json({ message: 'User ID is missing' })
@@ -22,29 +22,31 @@ export class TaskController {
     }
   }
 
+  // Create a new task for the authenticated user
   async createTask(req: IGetUserAuthInfoRequest, res: Response) {
     try {
-      const userId = req.user?.userId
-      console.log('Creating task for userId:', userId, 'with data:', req.body)
+      const userId = req.user?.userId // Get userId from middleware (UUID)
 
       if (!userId) {
         return res.status(400).json({ message: 'User ID is missing' })
       }
 
-      const { title, description, status, priority, dueDate } = req.body
+      const { title, description, status, priority, dueDate, assigneeId } =
+        req.body
 
-      // Validate request payload
+      // Validate required fields
       if (!title || !status || !priority) {
         return res.status(400).json({ message: 'Required fields are missing' })
       }
 
-      // Create the task
+      // Create the task using the service
       const newTask = await taskService.createTask(userId, {
         title,
         description,
         status,
         priority,
         dueDate: dueDate ? new Date(dueDate) : undefined, // Convert dueDate to Date object
+        assigneeId, // Assignee can be optional
       })
 
       res.status(201).json(newTask)
@@ -54,17 +56,29 @@ export class TaskController {
     }
   }
 
+  // Update an existing task for the authenticated user
   async updateTask(req: IGetUserAuthInfoRequest, res: Response) {
     try {
-      const userId = req.user?.userId
-      const taskId = parseInt(req.params.taskId)
-      console.log('Updating taskId:', taskId, 'for userId:', userId)
+      const userId = req.user?.userId // Get userId from middleware (UUID)
+      const taskId = req.params.taskId // Get the taskId from route parameters (UUID)
 
       if (!userId) {
         return res.status(400).json({ message: 'User ID is missing' })
       }
 
-      const updatedTask = await taskService.updateTask(taskId, userId, req.body)
+      const { title, description, status, priority, dueDate, assigneeId } =
+        req.body
+
+      // Update the task using the service
+      const updatedTask = await taskService.updateTask(taskId, userId, {
+        title,
+        description,
+        status,
+        priority,
+        dueDate: dueDate ? new Date(dueDate) : undefined, // Convert dueDate to Date object
+        assigneeId, // Assignee can be optional
+      })
+
       res.status(200).json(updatedTask)
     } catch (error: any) {
       console.error('Error updating task:', error.message)
@@ -72,18 +86,19 @@ export class TaskController {
     }
   }
 
+  // Delete an existing task for the authenticated user
   async deleteTask(req: IGetUserAuthInfoRequest, res: Response) {
     try {
-      const userId = req.user?.userId
-      const taskId = parseInt(req.params.taskId)
-      console.log('Deleting taskId:', taskId, 'for userId:', userId)
+      const userId = req.user?.userId // Get userId from middleware (UUID)
+      const taskId = req.params.taskId // Get the taskId from route parameters (UUID)
 
       if (!userId) {
         return res.status(400).json({ message: 'User ID is missing' })
       }
 
+      // Delete the task using the service
       await taskService.deleteTask(taskId, userId)
-      res.status(204).send()
+      res.status(204).send() // No content to send after successful delete
     } catch (error: any) {
       console.error('Error deleting task:', error.message)
       res.status(500).json({ message: 'Error deleting task' })

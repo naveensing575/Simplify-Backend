@@ -3,7 +3,7 @@ import { User } from '@prisma/client'
 
 export interface IGetUserAuthInfoRequest extends Request {
   user: {
-    userId: number
+    userId: string
     sub: string
     email?: string
     name?: string
