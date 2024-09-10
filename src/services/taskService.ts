@@ -111,4 +111,27 @@ export class TaskService {
       throw new Error('Error updating task')
     }
   }
+
+  // Delete an existing task for a given user (UUID)
+  async deleteTask(taskId: string, userId: string) {
+    try {
+      const task = await prisma.task.findFirst({
+        where: {
+          id: taskId,
+          userId, // Ensure the task belongs to this user
+        },
+      })
+
+      if (!task) {
+        throw new Error('Task not found or you do not have access to this task')
+      }
+
+      await prisma.task.delete({
+        where: { id: taskId },
+      })
+    } catch (error: any) {
+      console.error('Service: Error deleting task:', error.message)
+      throw new Error('Error deleting task')
+    }
+  }
 }
