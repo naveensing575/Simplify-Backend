@@ -24,7 +24,7 @@ model Task {
   title       String
   description String?
   status      String    @default("todo")
-  priority    String    @default("normal")
+  priority    String    @default("low")
   dueDate     DateTime?
   userId      String
   user        User      @relation("TaskCreator", fields: [userId], references: [id])
