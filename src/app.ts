@@ -5,6 +5,7 @@ import cors from 'cors'
 import userRoutes from './routes/userRoutes'
 import taskRoutes from './routes/taskRoutes'
 import authRoutes from './routes/authRoutes'
+import teamRoutes from './routes/teamRoutes'
 
 // Initialize Express app
 const app = express()
@@ -31,6 +32,7 @@ app.use(
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/tasks', taskRoutes)
+app.use('/api/teams', teamRoutes) // Add this route
 
 // Default route for health check or root access
 app.get('/', (req, res) => {

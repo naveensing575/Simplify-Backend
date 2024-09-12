@@ -7,6 +7,7 @@ export interface IGetUserAuthInfoRequest extends Request {
     sub: string
     email?: string
     name?: string
+    role?: string
   }
   prisma?: PrismaClient
 }
