@@ -3,17 +3,21 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export class TaskService {
-  [x: string]: any
-  // Fetch all tasks for a given user (UUID), including the assignee's name
-  async getAllTasks(userId: string) {
+  // Fetch all tasks for a given user or team, including assignee's name
+  async getAllTasks(userId: string, teamId?: string) {
     try {
       const tasks = await prisma.task.findMany({
-        where: { userId },
+        where: {
+          OR: [
+            { userId }, // Personal tasks
+            { teamId }, // Team-based tasks
+          ],
+        },
         include: {
-          assignee: {
+          assignees: {
             select: {
               id: true,
-              name: true, // Include the assignee's name and id in the response
+              name: true, // Include assignee names
             },
           },
         },
@@ -25,7 +29,7 @@ export class TaskService {
     }
   }
 
-  // Create a new task for a given user (UUID), assigning directly to a user if an assignee is provided
+  // Create a new task for a given user or team, assigning to multiple users if provided
   async createTask(
     userId: string,
     data: {
@@ -34,7 +38,8 @@ export class TaskService {
       status: string
       priority: string
       dueDate?: Date
-      assigneeId?: string // This should reference the `User` table's `id`
+      assigneeIds?: string[] // Multiple assignees
+      teamId?: string // Optional team ID for team tasks
     },
   ) {
     try {
@@ -45,11 +50,13 @@ export class TaskService {
         priority: data.priority,
         dueDate: data.dueDate,
         userId, // Assign the task to the creator
+        teamId: data.teamId ?? undefined, // Add teamId if provided
       }
 
-      // If assigneeId is provided, connect the task to the user
-      if (data.assigneeId) {
-        taskData.assignee = { connect: { id: data.assigneeId } }
+      if (data.assigneeIds?.length) {
+        taskData.assignees = {
+          connect: data.assigneeIds.map((id) => ({ id })),
+        }
       }
 
       const task = await prisma.task.create({
@@ -62,24 +69,25 @@ export class TaskService {
     }
   }
 
-  // Update an existing task for a given user (UUID)
+  // Update an existing task for a given user or team
   async updateTask(
-    taskId: string, // UUID for task
-    userId: string, // UUID for ownership check
+    taskId: string,
+    userId: string,
     data: {
       title?: string
       description?: string
       status?: string
       priority?: string
       dueDate?: Date
-      assigneeId?: string // Reference the assignee's user ID directly
+      assigneeIds?: string[]
+      teamId?: string
     },
   ) {
     try {
       const task = await prisma.task.findFirst({
         where: {
           id: taskId,
-          userId, // Ensure the task belongs to this user
+          OR: [{ userId }, { teamId: data.teamId }], // Check for user or team ownership
         },
       })
 
@@ -95,9 +103,10 @@ export class TaskService {
         dueDate: data.dueDate,
       }
 
-      // If assigneeId is provided, connect the task to the new assignee
-      if (data.assigneeId) {
-        updateData.assignee = { connect: { id: data.assigneeId } }
+      if (data.assigneeIds?.length) {
+        updateData.assignees = {
+          set: data.assigneeIds.map((id) => ({ id })), // Reset and reassign assignees
+        }
       }
 
       const updatedTask = await prisma.task.update({
@@ -112,13 +121,13 @@ export class TaskService {
     }
   }
 
-  // Delete an existing task for a given user (UUID)
-  async deleteTask(taskId: string, userId: string) {
+  // Delete an existing task for a given user or team
+  async deleteTask(taskId: string, userId: string, teamId?: string) {
     try {
       const task = await prisma.task.findFirst({
         where: {
           id: taskId,
-          userId, // Ensure the task belongs to this user
+          OR: [{ userId }, { teamId }], // Ensure user or team has ownership
         },
       })
 

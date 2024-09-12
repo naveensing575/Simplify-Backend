@@ -8,15 +8,39 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  auth0Id       String   @unique
-  email         String   @unique
-  name          String
-  role          String   @default("member")
-  tasks         Task[]   @relation("TaskCreator")
-  assignedTasks Task[]   @relation("TaskAssignee")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String       @id @default(uuid())
+  auth0Id         String       @unique
+  email           String       @unique
+  name            String
+  role            String       @default("member")
+  tasks           Task[]       @relation("TaskCreator") // Tasks created by the user
+  assignedTasks   Task[]       @relation("TaskAssignees") // Many-to-many relation for assigned tasks
+  teamMemberships TeamMember[] // Teams the user is a part of
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Team {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  members     TeamMember[]
+  tasks       Task[]       @relation("TeamTasks")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  role      String   @default("member") // Role within the team (e.g., member, admin)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, teamId])
 }
 
 model Task {
@@ -27,9 +51,10 @@ model Task {
   priority    String    @default("low")
   dueDate     DateTime?
   userId      String
-  user        User      @relation("TaskCreator", fields: [userId], references: [id])
-  assignee    User?     @relation("TaskAssignee", fields: [assigneeid], references: [id])
-  assigneeid  String?
+  user        User      @relation("TaskCreator", fields: [userId], references: [id]) // Task creator
+  assignees   User[]    @relation("TaskAssignees") // Many-to-many relation for assignees
+  teamId      String?
+  team        Team?     @relation("TeamTasks", fields: [teamId], references: [id]) // Team associated with this task
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
