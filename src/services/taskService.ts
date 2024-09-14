@@ -50,7 +50,11 @@ export class TaskService {
         priority: data.priority,
         dueDate: data.dueDate,
         userId, // Assign the task to the creator
-        teamId: data.teamId ?? undefined, // Add teamId if provided
+      }
+
+      // Include teamId only if it is provided (for team tasks)
+      if (data.teamId) {
+        taskData.teamId = data.teamId
       }
 
       if (data.assigneeIds?.length) {

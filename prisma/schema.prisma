@@ -13,9 +13,9 @@ model User {
   email           String       @unique
   name            String
   role            String       @default("member")
-  tasks           Task[]       @relation("TaskCreator") // Tasks created by the user
-  assignedTasks   Task[]       @relation("TaskAssignees") // Many-to-many relation for assigned tasks
-  teamMemberships TeamMember[] // Teams the user is a part of
+  tasks           Task[]       @relation("TaskCreator")
+  assignedTasks   Task[]       @relation("TaskAssignees")
+  teamMemberships TeamMember[]
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -32,7 +32,7 @@ model Team {
 
 model TeamMember {
   id        String   @id @default(uuid())
-  role      String   @default("member") // Role within the team (e.g., member, admin)
+  role      String   @default("member")
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   teamId    String
@@ -51,10 +51,10 @@ model Task {
   priority    String    @default("low")
   dueDate     DateTime?
   userId      String
-  user        User      @relation("TaskCreator", fields: [userId], references: [id]) // Task creator
-  assignees   User[]    @relation("TaskAssignees") // Many-to-many relation for assignees
+  user        User      @relation("TaskCreator", fields: [userId], references: [id])
+  assignees   User[]    @relation("TaskAssignees")
   teamId      String?
-  team        Team?     @relation("TeamTasks", fields: [teamId], references: [id]) // Team associated with this task
+  team        Team?     @relation("TeamTasks", fields: [teamId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes'
 import taskRoutes from './routes/taskRoutes'
 import authRoutes from './routes/authRoutes'
 import teamRoutes from './routes/teamRoutes'
+import teamTaskRoutes from './routes/teamTaskRoutes'
 
 // Initialize Express app
 const app = express()
@@ -14,7 +15,7 @@ const app = express()
 app.use(helmet())
 
 // Middleware for logging HTTP requests
-app.use(morgan('combined')) // You can use 'tiny' for a less verbose log format
+app.use(morgan('combined'))
 
 // Middleware to parse JSON bodies
 app.use(express.json())
@@ -22,9 +23,9 @@ app.use(express.json())
 // Middleware to enable CORS
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Replace with your frontend URL
+    origin: 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Include cookies if needed
+    credentials: true,
   }),
 )
 
@@ -32,7 +33,8 @@ app.use(
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/tasks', taskRoutes)
-app.use('/api/teams', teamRoutes) // Add this route
+app.use('/api/teams', teamRoutes)
+app.use('/api/team-tasks', teamTaskRoutes)
 
 // Default route for health check or root access
 app.get('/', (req, res) => {

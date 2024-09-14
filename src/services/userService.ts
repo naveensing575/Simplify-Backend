@@ -26,12 +26,12 @@ export class UserService {
 
   // Update user profile by userId from token (UUID as string)
   async updateUserProfile(
-    userId: string, // UUID as string
+    userId: string,
     data: { email?: string; name?: string },
   ) {
     try {
       const updatedUser = await prisma.user.update({
-        where: { id: userId }, // UUID is a string
+        where: { id: userId },
         data,
       })
 
