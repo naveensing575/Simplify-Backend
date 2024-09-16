@@ -50,4 +50,19 @@ export class UserController {
       res.status(500).json({ message: 'Error updating user profile' })
     }
   }
+
+  async getAllUsers(req: Request, res: Response) {
+    try {
+      const users = await userService.getAllUsers()
+
+      if (!users || users.length === 0) {
+        return res.status(404).json({ message: 'No users found' })
+      }
+
+      res.status(200).json(users)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      res.status(500).json({ message: 'Error fetching users' })
+    }
+  }
 }

@@ -21,6 +21,16 @@ router.get('/:teamId', authMiddleware, (req: Request, res: Response) => {
   return teamController.getTeamDetails(req as IGetUserAuthInfoRequest, res)
 })
 
+// Update a specific team
+router.put('/:teamId', authMiddleware, (req: Request, res: Response) => {
+  return teamController.updateTeam(req as IGetUserAuthInfoRequest, res)
+})
+
+// Delete a specific team
+router.delete('/:teamId', authMiddleware, (req: Request, res: Response) => {
+  return teamController.deleteTeam(req as IGetUserAuthInfoRequest, res)
+})
+
 // Get members of a specific team
 router.get(
   '/:teamId/members',

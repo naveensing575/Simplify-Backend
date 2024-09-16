@@ -2,14 +2,31 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+interface CreateTeamData {
+  name: string
+  description?: string
+  members: string[] // List of user IDs
+}
+
+interface UpdateTeamData {
+  name?: string
+  description?: string
+  members?: string[] // Updated list of user IDs (optional)
+}
+
 export class TeamService {
   // Create a new team
-  async createTeam(data: { name: string; description?: string }) {
+  async createTeam(data: CreateTeamData) {
     try {
       const team = await prisma.team.create({
         data: {
           name: data.name,
           description: data.description,
+          members: {
+            create: data.members.map((userId) => ({
+              user: { connect: { id: userId } },
+            })),
+          },
         },
       })
       return team
@@ -53,7 +70,6 @@ export class TeamService {
               },
             },
           },
-          tasks: true, // Optionally include tasks related to the team
         },
       })
 
@@ -65,6 +81,49 @@ export class TeamService {
     } catch (error) {
       console.error('Error fetching team details:', error)
       throw new Error('Error fetching team details')
+    }
+  }
+
+  // Update a team
+  async updateTeam(teamId: string, data: UpdateTeamData) {
+    try {
+      const updatedTeam = await prisma.team.update({
+        where: { id: teamId },
+        data: {
+          name: data.name,
+          description: data.description,
+          members: {
+            deleteMany: {}, // Remove existing members
+            create: data.members?.map((userId) => ({
+              user: { connect: { id: userId } },
+            })),
+          },
+        },
+      })
+      return updatedTeam
+    } catch (error) {
+      console.error('Error updating team:', error)
+      throw new Error('Error updating team')
+    }
+  }
+
+  // Delete a team
+  async deleteTeam(teamId: string) {
+    try {
+      // Delete members first (because of foreign key constraints)
+      await prisma.teamMember.deleteMany({
+        where: { teamId },
+      })
+
+      // Then delete the team
+      const deletedTeam = await prisma.team.delete({
+        where: { id: teamId },
+      })
+
+      return deletedTeam
+    } catch (error) {
+      console.error('Error deleting team:', error)
+      throw new Error('Error deleting team')
     }
   }
 
