@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { User } from '@prisma/client'
+import { PrismaClient, UserRole } from '@prisma/client'
 
 export interface IGetUserAuthInfoRequest extends Request {
   user: {
@@ -7,7 +7,7 @@ export interface IGetUserAuthInfoRequest extends Request {
     sub: string
     email?: string
     name?: string
-    role?: string
+    role?: UserRole
   }
   prisma?: PrismaClient
 }

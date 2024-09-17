@@ -1,24 +1,40 @@
 import { Request, Response } from 'express'
-import * as authService from '../services/authService'
+import { signup, login } from '../services/authService'
 
-export const signup = async (req: Request, res: Response) => {
-  const { email, password, name } = req.body
+export class AuthController {
+  // User signup
+  async signup(req: Request, res: Response) {
+    const { email, password, name, role } = req.body
 
-  try {
-    const { token, user } = await authService.signup(email, password, name)
-    res.status(201).json({ token, user })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message })
+    try {
+      // Call the signup service
+      const result = await signup(email, password, name, role)
+
+      // Return the result to the client
+      return res.status(201).json(result)
+    } catch (error: any) {
+      console.error('Error during signup:', error.message)
+      return res
+        .status(500)
+        .json({ message: error.message || 'Error during signup' })
+    }
   }
-}
 
-export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body
+  // User login
+  async login(req: Request, res: Response) {
+    const { email, password } = req.body
 
-  try {
-    const { token, user } = await authService.login(email, password)
-    res.status(200).json({ token, user })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message })
+    try {
+      // Call the login service
+      const result = await login(email, password)
+
+      // Return the result to the client
+      return res.status(200).json(result)
+    } catch (error: any) {
+      console.error('Error during login:', error.message)
+      return res
+        .status(401)
+        .json({ message: error.message || 'Error during login' })
+    }
   }
 }

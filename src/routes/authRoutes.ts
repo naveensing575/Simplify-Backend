@@ -1,9 +1,10 @@
-// src/routes/authRoutes.ts
 import { Router } from 'express'
-import * as authController from '../controllers/authController'
+import { AuthController } from '../controllers/authController'
 
+const authController = new AuthController()
 const router = Router()
 
+// Auth routes
 router.post('/signup', authController.signup)
 router.post('/login', authController.login)
 

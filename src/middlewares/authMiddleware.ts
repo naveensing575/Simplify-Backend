@@ -6,7 +6,12 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export interface IGetUserAuthInfoRequest extends Request {
-  user?: { userId: string; role: string } // Include role in the user info
+  user?: { userId: string; role: UserRole } // UserRole enum for role consistency
+}
+
+export enum UserRole {
+  Admin = 'admin',
+  Member = 'member',
 }
 
 // Middleware to verify JWT and attach the userId and role to req.user
@@ -45,7 +50,7 @@ const authMiddleware = async (
         return res.status(404).json({ message: 'User not found' })
       }
 
-      req.user = { userId: user.id, role: user.role } // Attach userId and role to the request object
+      req.user = { userId: user.id, role: user.role as UserRole } // Attach userId and role to the request object
 
       next() // Proceed to the next middleware or route handler
     } else {
@@ -57,7 +62,7 @@ const authMiddleware = async (
 }
 
 // Middleware to check if the user has the required role
-export const roleMiddleware = (requiredRoles: string[]) => {
+export const roleMiddleware = (requiredRoles: UserRole[]) => {
   return (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     const userRole = req.user?.role
 

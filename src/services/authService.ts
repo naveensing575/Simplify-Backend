@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, UserRole } from '@prisma/client'
 
 const prisma = new PrismaClient()
 const JWT_SECRET = process.env.JWT_SECRET as string
@@ -10,7 +10,12 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not defined in environment variables')
 }
 
-export const signup = async (email: string, password: string, name: string) => {
+export const signup = async (
+  email: string,
+  password: string,
+  name: string,
+  role: UserRole = 'MEMBER',
+) => {
   try {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -24,26 +29,29 @@ export const signup = async (email: string, password: string, name: string) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create a new user
+    // Create a new user with default role 'MEMBER'
     const user = await prisma.user.create({
       data: {
         email,
         name,
         auth0Id: hashedPassword, // Store hashed password in auth0Id field
+        role: role, // Role defaults to MEMBER, can be overridden (e.g., by an admin)
       },
     })
 
     // Generate a JWT token
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: '1h',
     })
 
-    // Return token and required user information (id, name, email)
+    // Return token and required user information (id, name, email, role)
     return {
       token,
       user: {
+        id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     }
   } catch (error: any) {
@@ -71,16 +79,18 @@ export const login = async (email: string, password: string) => {
     }
 
     // Generate a JWT token
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: '1h',
     })
 
-    // Return token and required user information (id, name, email)
+    // Return token and required user information (id, name, email, role)
     return {
       token,
       user: {
+        id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     }
   } catch (error: any) {

@@ -8,17 +8,19 @@ export class UserService {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId }, // UUID is a string
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true, // Ensure 'role' is selected
+        },
       })
 
       if (!user) {
         throw new Error('User not found')
       }
 
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      }
+      return user // Role is included in the user object
     } catch (error) {
       throw new Error('Error retrieving user profile')
     }
@@ -33,17 +35,21 @@ export class UserService {
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true, // Ensure 'role' is selected in case you need to return it
+        },
       })
 
-      return {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-      }
+      return updatedUser
     } catch (error) {
       throw new Error('Error updating user profile')
     }
   }
+
+  // Fetch all users with their roles
   async getAllUsers() {
     try {
       const users = await prisma.user.findMany({
@@ -51,6 +57,7 @@ export class UserService {
           id: true,
           name: true,
           email: true,
+          role: true,
         },
       })
       return users

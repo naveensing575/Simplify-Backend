@@ -87,19 +87,25 @@ export class TeamService {
   // Update a team
   async updateTeam(teamId: string, data: UpdateTeamData) {
     try {
+      const updateData: any = {
+        ...(data.name && { name: data.name }),
+        ...(data.description && { description: data.description }),
+      }
+
+      if (data.members?.length) {
+        updateData.members = {
+          deleteMany: {}, // Remove existing members
+          create: data.members.map((userId) => ({
+            user: { connect: { id: userId } },
+          })),
+        }
+      }
+
       const updatedTeam = await prisma.team.update({
         where: { id: teamId },
-        data: {
-          name: data.name,
-          description: data.description,
-          members: {
-            deleteMany: {}, // Remove existing members
-            create: data.members?.map((userId) => ({
-              user: { connect: { id: userId } },
-            })),
-          },
-        },
+        data: updateData,
       })
+
       return updatedTeam
     } catch (error) {
       console.error('Error updating team:', error)
@@ -134,7 +140,7 @@ export class TeamService {
         where: { teamId },
         include: {
           user: {
-            select: { id: true, name: true, role: true },
+            select: { id: true, name: true, role: true }, // Include roles
           },
         },
       })
