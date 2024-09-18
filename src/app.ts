@@ -7,6 +7,7 @@ import taskRoutes from './routes/personalTaskRoutes'
 import authRoutes from './routes/authRoutes'
 import teamRoutes from './routes/teamRoutes'
 import teamTaskRoutes from './routes/teamTaskRoutes'
+import projectRoutes from './routes/projectRoutes'
 
 // Initialize Express app
 const app = express()
@@ -35,6 +36,7 @@ app.use('/api/user', userRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/teams', teamRoutes)
 app.use('/api/team-tasks', teamTaskRoutes)
+app.use('/api/projects', projectRoutes)
 
 // Default route for health check or root access
 app.get('/', (req, res) => {
