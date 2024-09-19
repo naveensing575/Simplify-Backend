@@ -3,6 +3,27 @@ import { PrismaClient, TaskStatus, TaskPriority } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export class PersonalTaskService {
+  // Utility function to map Prisma enum statuses back to frontend string statuses
+  private mapPrismaStatusToFrontend(status: TaskStatus): string {
+    const statusMap: { [key in TaskStatus]: string } = {
+      [TaskStatus.TODO]: 'todo',
+      [TaskStatus.IN_PROGRESS]: 'in-progress',
+      [TaskStatus.REVIEW]: 'review',
+      [TaskStatus.DONE]: 'done',
+    }
+    return statusMap[status] || 'todo'
+  }
+
+  // Utility function to map Prisma enum priorities back to frontend string priorities
+  private mapPrismaPriorityToFrontend(priority: TaskPriority): string {
+    const priorityMap: { [key in TaskPriority]: string } = {
+      [TaskPriority.LOW]: 'low',
+      [TaskPriority.MEDIUM]: 'medium',
+      [TaskPriority.HIGH]: 'high',
+    }
+    return priorityMap[priority] || 'low'
+  }
+
   // Fetch all tasks for a given user (personal tasks only)
   async getAllTasks(userId: string) {
     try {
@@ -12,10 +33,9 @@ export class PersonalTaskService {
         },
       })
 
-      // Fetch the user's name once and use it as the assignee for all tasks
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { name: true }, // Fetch the user's name
+        select: { name: true },
       })
 
       if (!user) {
@@ -23,9 +43,12 @@ export class PersonalTaskService {
       }
 
       // Convert the task objects to include the user's name as assignee
+      // and map status and priority back to frontend format
       const tasksWithAssigneeName = tasks.map((task) => ({
         ...task,
-        assignee: user.name, // Use the fetched user's name as the assignee
+        status: this.mapPrismaStatusToFrontend(task.status), // Map status back to frontend format
+        priority: this.mapPrismaPriorityToFrontend(task.priority), // Map priority back to frontend format
+        assignee: user.name,
       }))
 
       return tasksWithAssigneeName
@@ -47,7 +70,6 @@ export class PersonalTaskService {
     },
   ) {
     try {
-      // Fetch the user's name to use as the assignee
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { name: true },
@@ -68,10 +90,12 @@ export class PersonalTaskService {
         },
       })
 
-      // Return the task with the assignee name
+      // Return the task with the assignee name and map status and priority
       return {
         ...task,
-        assignee: user.name, // Include the assignee's name in the return
+        status: this.mapPrismaStatusToFrontend(task.status), // Map status back to frontend format
+        priority: this.mapPrismaPriorityToFrontend(task.priority), // Map priority back to frontend format
+        assignee: user.name,
       }
     } catch (error: any) {
       console.error('Service: Error creating personal task:', error.message)
@@ -115,7 +139,6 @@ export class PersonalTaskService {
         },
       })
 
-      // Fetch the user's name to return as assignee
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { name: true },
@@ -123,7 +146,9 @@ export class PersonalTaskService {
 
       return {
         ...updatedTask,
-        assignee: user?.name || 'Unknown', // Return the assignee's name
+        status: this.mapPrismaStatusToFrontend(updatedTask.status), // Map status back to frontend format
+        priority: this.mapPrismaPriorityToFrontend(updatedTask.priority), // Map priority back to frontend format
+        assignee: user?.name || 'Unknown',
       }
     } catch (error: any) {
       console.error('Service: Error updating personal task:', error.message)
