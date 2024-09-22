@@ -6,12 +6,14 @@ interface CreateTeamData {
   name: string
   description?: string
   members: string[] // List of user IDs
+  projectId?: string // Optional project ID
 }
 
 interface UpdateTeamData {
   name?: string
   description?: string
   members?: string[] // Updated list of user IDs (optional)
+  projectId?: string // Optional project ID
 }
 
 export class TeamService {
@@ -22,6 +24,9 @@ export class TeamService {
         data: {
           name: data.name,
           description: data.description,
+          projects: data.projectId
+            ? { connect: { id: data.projectId } } // Use "projects" (plural)
+            : undefined, // Connect project if provided
           members: {
             create: data.members.map((userId) => ({
               user: { connect: { id: userId } },
@@ -41,6 +46,7 @@ export class TeamService {
     try {
       const teams = await prisma.team.findMany({
         include: {
+          projects: { select: { id: true, title: true } }, // Use "projects" (plural)
           members: {
             select: {
               user: {
@@ -63,6 +69,7 @@ export class TeamService {
       const team = await prisma.team.findUnique({
         where: { id: teamId },
         include: {
+          projects: { select: { id: true, title: true } }, // Use "projects" (plural)
           members: {
             select: {
               user: {
@@ -90,6 +97,9 @@ export class TeamService {
       const updateData: any = {
         ...(data.name && { name: data.name }),
         ...(data.description && { description: data.description }),
+        ...(data.projectId && {
+          projects: { connect: { id: data.projectId } },
+        }), // Use "projects" (plural)
       }
 
       if (data.members?.length) {

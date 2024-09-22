@@ -2,6 +2,7 @@ import { PrismaClient, ProjectStatus } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+// Create a new project
 export const createProject = async (data: {
   title: string
   description?: string
@@ -13,6 +14,7 @@ export const createProject = async (data: {
   })
 }
 
+// Fetch a project by ID, including its owner, team, taskBoards, and tasks
 export const getProjectById = async (projectId: string) => {
   return prisma.project.findUnique({
     where: { id: projectId },
@@ -24,11 +26,12 @@ export const getProjectById = async (projectId: string) => {
         },
       },
       taskBoards: true,
-      Task: true,
+      tasks: true, // Use 'tasks' instead of 'Task'
     },
   })
 }
 
+// Fetch all projects, including their owner, team, taskBoards, and tasks
 export const getAllProjects = async () => {
   return prisma.project.findMany({
     include: {
@@ -39,12 +42,12 @@ export const getAllProjects = async () => {
         },
       },
       taskBoards: true,
-      Task: true,
+      tasks: true, // Use 'tasks' instead of 'Task'
     },
   })
 }
 
-// Fix type mismatch when updating the project status
+// Update a project by ID, allowing updates to the title, description, and status
 export const updateProject = async (
   projectId: string,
   data: Partial<{
@@ -59,7 +62,7 @@ export const updateProject = async (
   })
 }
 
-// Delete the project
+// Delete a project by ID
 export const deleteProject = async (projectId: string) => {
   return prisma.project.delete({
     where: { id: projectId },

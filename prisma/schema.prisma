@@ -27,8 +27,8 @@ model Team {
   name        String       @unique
   description String?
   members     TeamMember[] // Members of the team
-  projects    Project[]    @relation("TeamProjects") // Projects associated with the team
-  taskBoards  TaskBoard[]  @relation("TeamBoards") // Team-specific task boards
+  projects    Project[]    @relation("TeamProjects") // Projects managed by the team
+  taskBoards  TaskBoard[]  @relation("TeamBoards") // Task boards associated with the team
   tasks       Task[]       @relation("TeamTasks") // Tasks associated with the team
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -55,12 +55,11 @@ model Project {
   ownerId     String
   owner       User          @relation("ProjectOwner", fields: [ownerId], references: [id])
   teamId      String? // If this is a team project
-  team        Team?         @relation("TeamProjects", fields: [teamId], references: [id])
+  team        Team?         @relation("TeamProjects", fields: [teamId], references: [id]) // Relation to the team
   taskBoards  TaskBoard[]   @relation("ProjectTaskBoards") // Task boards associated with the project
+  tasks       Task[]        @relation("ProjectTasks") // Tasks associated with the project
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
-  Task Task[] @relation("ProjectTasks")
 }
 
 model TaskBoard {

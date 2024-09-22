@@ -8,7 +8,7 @@ export class TeamController {
   // Create a new team
   async createTeam(req: IGetUserAuthInfoRequest, res: Response) {
     try {
-      const { name, description, members } = req.body
+      const { name, description, members, projectId } = req.body
 
       if (!name) {
         return res.status(400).json({ message: 'Team name is required' })
@@ -24,6 +24,7 @@ export class TeamController {
         name,
         description,
         members,
+        projectId, // Pass projectId to service
       })
       return res.status(201).json(newTeam)
     } catch (error) {
@@ -60,9 +61,9 @@ export class TeamController {
   async updateTeam(req: IGetUserAuthInfoRequest, res: Response) {
     try {
       const { teamId } = req.params
-      const { name, description, members } = req.body
+      const { name, description, members, projectId } = req.body
 
-      if (!name && !description && !members) {
+      if (!name && !description && !members && !projectId) {
         return res
           .status(400)
           .json({ message: 'At least one field must be updated' })
@@ -72,6 +73,7 @@ export class TeamController {
         name,
         description,
         members,
+        projectId, // Pass projectId to service
       })
       return res.status(200).json(updatedTeam)
     } catch (error) {
