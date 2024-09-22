@@ -13,11 +13,11 @@ model User {
   email              String       @unique
   name               String
   role               UserRole     @default(MEMBER)
-  personalTaskBoards TaskBoard[]  @relation("PersonalBoards") // Personal boards the user owns
-  tasks              Task[]       @relation("TaskCreator") // Tasks created by this user
-  assignedTasks      Task[]       @relation("TaskAssignees") // Tasks assigned to this user
-  projects           Project[]    @relation("ProjectOwner") // Projects owned by the user
-  teamMemberships    TeamMember[] // Teams this user is part of
+  personalTaskBoards TaskBoard[]  @relation("PersonalBoards")
+  tasks              Task[]       @relation("TaskCreator")
+  assignedTasks      Task[]       @relation("TaskAssignees")
+  projects           Project[]    @relation("ProjectOwner")
+  teamMemberships    TeamMember[]
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 }
@@ -26,17 +26,17 @@ model Team {
   id          String       @id @default(uuid())
   name        String       @unique
   description String?
-  members     TeamMember[] // Members of the team
-  projects    Project[]    @relation("TeamProjects") // Projects managed by the team
-  taskBoards  TaskBoard[]  @relation("TeamBoards") // Task boards associated with the team
-  tasks       Task[]       @relation("TeamTasks") // Tasks associated with the team
+  members     TeamMember[]
+  projects    Project[]    @relation("TeamProjects")
+  taskBoards  TaskBoard[]  @relation("TeamBoards")
+  tasks       Task[]       @relation("TeamTasks")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
 
 model TeamMember {
   id        String   @id @default(uuid())
-  role      TeamRole @default(MEMBER) // Team-specific role
+  role      TeamRole @default(MEMBER)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   teamId    String
@@ -51,13 +51,14 @@ model Project {
   id          String        @id @default(uuid())
   title       String
   description String?
-  status      ProjectStatus @default(ACTIVE) // Status of the project (active, completed, etc.)
+  status      ProjectStatus @default(ACTIVE)
+  archived    Boolean       @default(false)
   ownerId     String
   owner       User          @relation("ProjectOwner", fields: [ownerId], references: [id])
-  teamId      String? // If this is a team project
-  team        Team?         @relation("TeamProjects", fields: [teamId], references: [id]) // Relation to the team
-  taskBoards  TaskBoard[]   @relation("ProjectTaskBoards") // Task boards associated with the project
-  tasks       Task[]        @relation("ProjectTasks") // Tasks associated with the project
+  teamId      String?
+  team        Team?         @relation("TeamProjects", fields: [teamId], references: [id])
+  taskBoards  TaskBoard[]   @relation("ProjectTaskBoards")
+  tasks       Task[]        @relation("ProjectTasks")
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }
@@ -66,14 +67,14 @@ model TaskBoard {
   id          String        @id @default(uuid())
   title       String
   description String?
-  type        TaskBoardType @default(PERSONAL) // Type: personal or team
-  userId      String? // Only set if it's a personal board
+  type        TaskBoardType @default(PERSONAL)
+  userId      String?
   user        User?         @relation("PersonalBoards", fields: [userId], references: [id])
-  teamId      String? // Only set if it's a team board
+  teamId      String?
   team        Team?         @relation("TeamBoards", fields: [teamId], references: [id])
-  projectId   String? // Optional reference to a project
+  projectId   String?
   project     Project?      @relation("ProjectTaskBoards", fields: [projectId], references: [id])
-  tasks       Task[]        @relation("TaskBoardTasks") // Tasks inside the task board
+  tasks       Task[]        @relation("TaskBoardTasks")
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }
@@ -82,58 +83,52 @@ model Task {
   id          String       @id @default(uuid())
   title       String
   description String?
-  status      TaskStatus   @default(TODO) // Task status (todo, in-progress, review, done)
-  priority    TaskPriority @default(LOW) // Task priority (low, medium, high)
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(LOW)
   dueDate     DateTime?
-  userId      String // Creator of the task
+  userId      String
   user        User         @relation("TaskCreator", fields: [userId], references: [id])
-  assignees   User[]       @relation("TaskAssignees") // Users assigned to the task
-  teamId      String? // Optional reference if the task belongs to a team
+  assignees   User[]       @relation("TaskAssignees")
+  teamId      String?
   team        Team?        @relation("TeamTasks", fields: [teamId], references: [id])
-  boardId     String? // Reference to the task board where the task is located
+  boardId     String?
   taskBoard   TaskBoard?   @relation("TaskBoardTasks", fields: [boardId], references: [id])
-  projectId   String? // Optional reference to the project the task belongs to
+  projectId   String?
   project     Project?     @relation("ProjectTasks", fields: [projectId], references: [id])
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
 
-// Enum for global user roles
 enum UserRole {
-  ADMIN // Admin users can manage all aspects of the system
-  MANAGER // Project managers can create and manage projects and tasks
-  MEMBER // Regular team members who work on tasks and projects
+  ADMIN
+  MANAGER
+  MEMBER
 }
 
-// Enum for team-specific roles
 enum TeamRole {
-  ADMIN // Team Admins can manage the team, add members, etc.
-  MEMBER // Regular team members who can work on tasks
-  GUEST // Guests have limited access to team resources
+  ADMIN
+  MEMBER
+  GUEST
 }
 
-// Enum for task statuses
 enum TaskStatus {
-  TODO // Task is to be done
-  IN_PROGRESS // Task is in progress
-  REVIEW // Task is under review
-  DONE // Task is completed
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
 }
 
-// Enum for task priorities
 enum TaskPriority {
   LOW
   MEDIUM
   HIGH
 }
 
-// Enum for task board types
 enum TaskBoardType {
-  PERSONAL // Task board for personal tasks
-  TEAM // Task board for team tasks
+  PERSONAL
+  TEAM
 }
 
-// Enum for project status
 enum ProjectStatus {
   ACTIVE
   COMPLETED
