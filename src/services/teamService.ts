@@ -5,19 +5,18 @@ const prisma = new PrismaClient()
 interface CreateTeamData {
   name: string
   description?: string
-  members: string[] // List of user IDs
-  projectId?: string // Optional project ID
+  members: string[]
+  projectId?: string
 }
 
 interface UpdateTeamData {
   name?: string
   description?: string
-  members?: string[] // Updated list of user IDs (optional)
-  projectId?: string // Optional project ID
+  members?: string[]
+  projectId?: string
 }
 
 export class TeamService {
-  // Create a new team
   async createTeam(data: CreateTeamData) {
     try {
       const team = await prisma.team.create({
@@ -25,8 +24,8 @@ export class TeamService {
           name: data.name,
           description: data.description,
           projects: data.projectId
-            ? { connect: { id: data.projectId } } // Use "projects" (plural)
-            : undefined, // Connect project if provided
+            ? { connect: { id: data.projectId } }
+            : undefined,
           members: {
             create: data.members.map((userId) => ({
               user: { connect: { id: userId } },
@@ -41,12 +40,11 @@ export class TeamService {
     }
   }
 
-  // Fetch all teams
   async getAllTeams() {
     try {
       const teams = await prisma.team.findMany({
         include: {
-          projects: { select: { id: true, title: true } }, // Use "projects" (plural)
+          projects: { select: { id: true, title: true } },
           members: {
             select: {
               user: {
@@ -63,13 +61,12 @@ export class TeamService {
     }
   }
 
-  // Fetch details of a specific team by teamId
   async getTeamDetails(teamId: string) {
     try {
       const team = await prisma.team.findUnique({
         where: { id: teamId },
         include: {
-          projects: { select: { id: true, title: true } }, // Use "projects" (plural)
+          projects: { select: { id: true, title: true } },
           members: {
             select: {
               user: {
@@ -91,7 +88,6 @@ export class TeamService {
     }
   }
 
-  // Update a team
   async updateTeam(teamId: string, data: UpdateTeamData) {
     try {
       const updateData: any = {
@@ -99,12 +95,12 @@ export class TeamService {
         ...(data.description && { description: data.description }),
         ...(data.projectId && {
           projects: { connect: { id: data.projectId } },
-        }), // Use "projects" (plural)
+        }),
       }
 
       if (data.members?.length) {
         updateData.members = {
-          deleteMany: {}, // Remove existing members
+          deleteMany: {},
           create: data.members.map((userId) => ({
             user: { connect: { id: userId } },
           })),
@@ -123,15 +119,12 @@ export class TeamService {
     }
   }
 
-  // Delete a team
   async deleteTeam(teamId: string) {
     try {
-      // Delete members first (because of foreign key constraints)
       await prisma.teamMember.deleteMany({
         where: { teamId },
       })
 
-      // Then delete the team
       const deletedTeam = await prisma.team.delete({
         where: { id: teamId },
       })
@@ -143,14 +136,13 @@ export class TeamService {
     }
   }
 
-  // Fetch members of a specific team
   async getTeamMembers(teamId: string) {
     try {
       const members = await prisma.teamMember.findMany({
         where: { teamId },
         include: {
           user: {
-            select: { id: true, name: true, role: true }, // Include roles
+            select: { id: true, name: true, role: true },
           },
         },
       })
