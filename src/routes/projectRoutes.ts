@@ -1,21 +1,22 @@
 import { Router } from 'express'
 import * as projectController from '../controllers/projectController'
+import authMiddleware from '../middlewares/authMiddleware'
 
 const router = Router()
 
 // Create a new project
-router.post('/', projectController.createProject)
+router.post('/', authMiddleware, projectController.createProject)
 
 // Get a single project by ID
-router.get('/:projectId', projectController.getProjectById)
+router.get('/:projectId', authMiddleware, projectController.getProjectById)
 
 // Get all projects
-router.get('', projectController.getAllProjects)
+router.get('', authMiddleware, projectController.getAllProjects)
 
 // Update a project by ID
-router.put('/:projectId', projectController.updateProject)
+router.put('/:projectId', authMiddleware, projectController.updateProject)
 
 // Delete a project by ID
-router.delete('/:projectId', projectController.deleteProject)
+router.delete('/:projectId', authMiddleware, projectController.deleteProject)
 
 export default router
